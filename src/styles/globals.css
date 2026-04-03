@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --midnight: #111534;
+  --midnight-deep: #0a0d22;
+  --magenta: #E8437A;
+  --azure: #4EB6F8;
+  --violet: #804DDB;
+  --flame: #FA8200;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--midnight-deep);
+  background-image: radial-gradient(
+    circle 900px at 50% 100%,
+    var(--azure) 0%,
+    var(--azure) 7%,
+    rgba(78,182,248,0.3) 20%,
+    rgba(78,182,248,0.08) 38%,
+    var(--midnight-deep) 70%
+  );
+}
