@@ -1,13 +1,54 @@
 // src/App.jsx
-import { AppProvider } from "./context/AppContext";
+// ─────────────────────────────────────────────────────────────────
+// Root component.
+//
+// Render order:
+//   Preloader   — full-screen loading overlay (unmounts after Enter)
+//   Intro       — scroll-driven frame sequence (unmounts after last frame)
+//   Main        — actual website content       (future steps)
+//
+// useScroll() is mounted here so Lenis + GSAP ticker are ready before
+// any ScrollTrigger animations are registered inside Intro.
+// ─────────────────────────────────────────────────────────────────
 
+import { AppProvider } from './context/AppContext'
+import { useApp }      from './context/AppContext'
+import { usePreloader } from './hooks/usePreloader'
+import { useScroll }    from './hooks/useScroll'
+import Preloader        from './components/Preloader/Preloader'
+import Intro            from './components/Intro/Intro'
+
+function AppInner() {
+  // Start loading all assets immediately
+  usePreloader()
+
+  // Init Lenis smooth scroll + wire to GSAP ticker
+  useScroll()
+
+  const { isEntered } = useApp()
+
+  return (
+    <>
+      {/* Loading overlay — always rendered first */}
+      <Preloader />
+
+      {/* Only mount scroll content after user clicks Enter */}
+      {isEntered && (
+        <>
+          <Intro />
+
+          {/* Main site — future steps */}
+          {/* <main> ... </main> */}
+        </>
+      )}
+    </>
+  )
+}
 
 export default function App() {
   return (
     <AppProvider>
-      <main>
-        {/* Preloader — next step */}
-      </main>
+      <AppInner />
     </AppProvider>
   )
 }
