@@ -30,4 +30,5 @@ body {
     rgba(78,182,248,0.08) 38%,
     var(--midnight-deep) 70%
   );
+  overflow: hidden;
 }

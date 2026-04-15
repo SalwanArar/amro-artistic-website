@@ -29,10 +29,11 @@ export function AppProvider({ children }) {
   const [isEntered, setIsEntered] = useState(false)
 
   // ── AUDIO STATE ───────────────────────────────────────────────
-  // audioEnabled: user has opted in to audio (toggled by the audio
-  //               permission prompt or the mute button in the UI).
-  // audioReady  : Howler has loaded and decoded all audio files.
-  const [audioEnabled, setAudioEnabled] = useState(false)
+  // audioEnabled: whether background music should currently play.
+  //               It starts enabled and begins after the first
+  //               user interaction (the Enter button).
+  // audioReady  : Howler has loaded and decoded the track.
+  const [audioEnabled, setAudioEnabled] = useState(true)
   const [audioReady,   setAudioReady]   = useState(false)
 
   // ── INTRO STATE ───────────────────────────────────────────────
