@@ -21,7 +21,7 @@ import './Intro.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const PX_PER_FRAME  = 6      // scroll distance per frame (scroll mode)
+const PX_PER_FRAME  = 24      // scroll distance per frame (scroll mode)
 const AUTO_DURATION = 24      // seconds to play all frames (auto mode)
 
 export default function Intro() {
