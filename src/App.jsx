@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { AppProvider } from './context/AppContext'
-import { useApp }      from './context/AppContext'
+import { useApp }      from './hooks/useApp'
 import AudioToggle     from './components/AudioToggle/AudioToggle'
 import { useAudio }    from './hooks/useAudio'
 import { usePreloader } from './hooks/usePreloader'

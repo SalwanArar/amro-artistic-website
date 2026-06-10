@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef } from 'react'
-import { useApp }           from '../context/AppContext'
+import { useApp }           from './useApp'
 import { loadAllAssets }    from '../utils/assetLoader'
 
 export function usePreloader() {

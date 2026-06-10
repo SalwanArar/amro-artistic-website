@@ -15,7 +15,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap }            from 'gsap'
 import { ScrollTrigger }   from 'gsap/ScrollTrigger'
-import { useApp }          from '../../context/AppContext'
+import { useApp }          from '../../hooks/useApp'
 import { getLoadedAssets } from '../../utils/assetLoader'
 import './Intro.css'
 

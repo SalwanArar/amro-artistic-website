@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react'
-import { useApp }                from '../../context/AppContext'
+import { useApp }                from '../../hooks/useApp'
 import './Preloader.css'
 
 export default function Preloader() {

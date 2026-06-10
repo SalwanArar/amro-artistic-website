@@ -1,4 +1,4 @@
-import { useApp } from '../../context/AppContext'
+import { useApp } from '../../hooks/useApp'
 import './AudioToggle.css'
 
 export default function AudioToggle() {
