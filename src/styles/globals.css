@@ -7,6 +7,7 @@
   --azure: #4EB6F8;
   --violet: #804DDB;
   --flame: #FA8200;
+  --site-background-image: url('/images/background.png');
 }
 
 *, *::before, *::after {
@@ -19,16 +20,14 @@ html, body {
   min-height: 100%;
 }
 
+html,
+body,
+#root {
+  background: transparent;
+}
+
 body {
   min-height: 100vh;
-  background-color: var(--midnight-deep);
-  background-image: radial-gradient(
-    circle 900px at 50% 100%,
-    var(--azure) 0%,
-    var(--azure) 7%,
-    rgba(78,182,248,0.3) 20%,
-    rgba(78,182,248,0.08) 38%,
-    var(--midnight-deep) 70%
-  );
-  overflow: hidden;
+  background: var(--midnight-deep) var(--site-background-image) center / cover fixed no-repeat;
+  overflow-x: hidden;
 }
