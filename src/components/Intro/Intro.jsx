@@ -82,6 +82,16 @@ export default function Intro() {
     }
   }, [])
 
+  // ── Hide page scrollbar while intro is active ─────────────────
+  useEffect(() => {
+    if (introComplete) {
+      document.documentElement.classList.remove('intro-active')
+      return
+    }
+    document.documentElement.classList.add('intro-active')
+    return () => document.documentElement.classList.remove('intro-active')
+  }, [introComplete])
+
   // ── One-time canvas init ──────────────────────────────────────
   useEffect(() => {
     if (introComplete) return

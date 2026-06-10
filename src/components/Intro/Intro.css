@@ -1,5 +1,15 @@
 /* src/components/Intro/Intro.css */
 
+/* Hide the page scrollbar while the intro is mounted (scroll still works) */
+html.intro-active {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.intro-active::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Scroll container ─────────────────────────────────────────── */
 .intro {
   position: relative;
