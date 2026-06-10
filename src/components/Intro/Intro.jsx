@@ -34,6 +34,7 @@ export default function Intro() {
   const stRef         = useRef(null)    // active ScrollTrigger
   const autoTweenRef  = useRef(null)    // active auto-play tween
   const roRef         = useRef(null)    // ResizeObserver
+  const finishedRef   = useRef(false)   // guards finishIntro from firing twice
 
   const [mode,         setMode]         = useState('idle')    // 'idle' | 'scroll' | 'auto'
   const [canvasVisible,setCanvasVisible] = useState(false)
@@ -119,17 +120,27 @@ export default function Intro() {
     }
   }, [introComplete, drawFrame, resizeCanvas, tearDown])
 
+  // ── Finish intro (scroll + auto modes) ────────────────────────
+  const finishIntro = useCallback(() => {
+    if (finishedRef.current || introComplete) return
+    finishedRef.current = true
+    tearDown()
+    completeIntro()
+  }, [introComplete, completeIntro, tearDown])
+
   // ── Activate SCROLL mode ──────────────────────────────────────
   const activateScroll = useCallback(() => {
     if (!containerRef.current || !frameCount) return
     tearDown()
+    finishedRef.current = false
     setMode('scroll')
     setHintHidden(true)
 
     const proxy = { frame: frameIdxRef.current }
+    const lastFrame = frameCount - 1
 
     const tween = gsap.to(proxy, {
-      frame: frameCount - 1,
+      frame: lastFrame,
       snap: 'frame',
       ease: 'none',
       scrollTrigger: {
@@ -140,8 +151,8 @@ export default function Intro() {
         onUpdate: () => {
           frameIdxRef.current = Math.round(proxy.frame)
           drawFrame(frameIdxRef.current)
+          if (frameIdxRef.current >= lastFrame) finishIntro()
         },
-        onLeave:     () => completeIntro(),
         onLeaveBack: () => { frameIdxRef.current = 0; drawFrame(0) },
       },
     })
@@ -154,7 +165,7 @@ export default function Intro() {
     window.scrollTo({ top: totalPx * progress, behavior: 'instant' })
 
     ScrollTrigger.refresh()
-  }, [frameCount, drawFrame, completeIntro, tearDown])
+  }, [frameCount, drawFrame, finishIntro, tearDown])
 
   // ── Activate AUTO-PLAY mode ───────────────────────────────────
   const activateAuto = useCallback(() => {
@@ -178,10 +189,10 @@ export default function Intro() {
       },
       onComplete: () => {
         autoTweenRef.current = null
-        completeIntro()
+        finishIntro()
       },
     })
-  }, [frameCount, drawFrame, completeIntro, tearDown])
+  }, [frameCount, drawFrame, finishIntro, tearDown])
 
   const deactivate = useCallback(() => {
     tearDown()
