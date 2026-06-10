@@ -22,7 +22,7 @@ import './Intro.css'
 gsap.registerPlugin(ScrollTrigger)
 
 const PX_PER_FRAME  = 24      // scroll distance per frame (scroll mode)
-const AUTO_DURATION = 24      // seconds to play all frames (auto mode)
+const AUTO_DURATION = 11      // seconds to play all frames (auto mode)
 
 export default function Intro() {
   const { introComplete, completeIntro } = useApp()
@@ -38,7 +38,7 @@ export default function Intro() {
   const [mode,         setMode]         = useState('idle')    // 'idle' | 'scroll' | 'auto'
   const [canvasVisible,setCanvasVisible] = useState(false)
   const [hintHidden,   setHintHidden]   = useState(false)
-  const [frameCount,   setFrameCount]   = useState(0)
+  const [frameCount] = useState(() => getLoadedAssets()?.frames.length ?? 0)
 
   // ── Draw a single frame index ─────────────────────────────────
   const drawFrame = useCallback((index) => {
@@ -89,7 +89,6 @@ export default function Intro() {
     if (!assets) return
 
     const count = assets.frames.length
-    setFrameCount(count)
 
     // Set scroll-container height for scroll mode
     if (containerRef.current) {
@@ -98,12 +97,13 @@ export default function Intro() {
 
     resizeCanvas()
     drawFrame(0)
-    setCanvasVisible(true)
+    const revealFrame = requestAnimationFrame(() => setCanvasVisible(true))
 
     roRef.current = new ResizeObserver(resizeCanvas)
     roRef.current.observe(canvasRef.current)
 
     return () => {
+      cancelAnimationFrame(revealFrame)
       roRef.current?.disconnect()
       tearDown()
     }
@@ -113,6 +113,7 @@ export default function Intro() {
   const activateScroll = useCallback(() => {
     if (!containerRef.current || !frameCount) return
     tearDown()
+    setMode('scroll')
     setHintHidden(true)
 
     const proxy = { frame: frameIdxRef.current }
@@ -149,6 +150,7 @@ export default function Intro() {
   const activateAuto = useCallback(() => {
     if (!frameCount) return
     tearDown()
+    setMode('auto')
     setHintHidden(true)
 
     const remaining = 1 - frameIdxRef.current / (frameCount - 1)
@@ -171,11 +173,11 @@ export default function Intro() {
     })
   }, [frameCount, drawFrame, completeIntro, tearDown])
 
-  // ── Wire mode changes ─────────────────────────────────────────
-  useEffect(() => {
-    if (mode === 'scroll') activateScroll()
-    if (mode === 'auto')   activateAuto()
-  }, [mode, activateScroll, activateAuto])
+  const deactivate = useCallback(() => {
+    tearDown()
+    setMode('idle')
+    setHintHidden(false)
+  }, [tearDown])
 
   if (introComplete) return null
 
@@ -201,7 +203,7 @@ export default function Intro() {
       <div className="intro__controls">
         <button
           className={`intro__btn${isScrollActive ? ' intro__btn--active' : ''}`}
-          onClick={() => setMode(isScrollActive ? 'idle' : 'scroll')}
+          onClick={isScrollActive ? deactivate : activateScroll}
           aria-pressed={isScrollActive}
           aria-label="Scroll mode"
         >
@@ -216,7 +218,7 @@ export default function Intro() {
 
         <button
           className={`intro__btn${isAutoActive ? ' intro__btn--active' : ''}`}
-          onClick={() => setMode(isAutoActive ? 'idle' : 'auto')}
+          onClick={isAutoActive ? deactivate : activateAuto}
           aria-pressed={isAutoActive}
           aria-label="Auto play"
         >
