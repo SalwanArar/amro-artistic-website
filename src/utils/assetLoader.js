@@ -10,7 +10,8 @@
 // ─────────────────────────────────────────────────────────────────
 
 // ── FRAME CONFIG ─────────────────────────────────────────────────
-const FRAME_COUNT  = 483                    // frame_00000 → frame_00482
+const FRAME_COUNT  = 189
+const FRAME_START  = 1
 const FRAME_DIR    = '/frames/'
 const FRAME_PREFIX = 'frame_'
 const FRAME_EXT    = '.png'
@@ -21,7 +22,7 @@ const pad5 = n => String(n).padStart(5, '0')
 // Build the full ordered list of frame URLs
 export const buildFrameUrls = () =>
   Array.from({ length: FRAME_COUNT }, (_, i) =>
-    `${FRAME_DIR}${FRAME_PREFIX}${pad5(i)}${FRAME_EXT}`
+    `${FRAME_DIR}${FRAME_PREFIX}${pad5(FRAME_START + i)}${FRAME_EXT}`
   )
 
 // ── AUDIO ASSETS ─────────────────────────────────────────────────
