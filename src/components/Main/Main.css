@@ -1,4 +1,6 @@
 .main {
   position: relative;
+  width: 100%;
   min-height: 100vh;
+  color: rgba(255, 255, 255, 0.85);
 }

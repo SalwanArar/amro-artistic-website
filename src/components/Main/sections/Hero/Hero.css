@@ -1,0 +1,41 @@
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 42rem;
+}
+
+.hero__eyebrow {
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--azure);
+}
+
+.hero__title {
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero__subtitle {
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
