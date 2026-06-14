@@ -1,8 +1,8 @@
-function IntroButton({setMode,mode, isActive, label, icon, labelText}) {
+function IntroButton({onClick, isActive, isHidden, label, icon, labelText}) {
     return (
         <button
-          className={'intro__btn'}
-          onClick={() => setMode(mode)}
+          className={`intro__btn${isHidden ? ' intro__hint--hidden' : ''}`}
+          onClick={onClick}
           aria-pressed={isActive}
           aria-label={label}
         >
