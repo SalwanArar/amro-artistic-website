@@ -18,6 +18,9 @@ import { ScrollTrigger }   from 'gsap/ScrollTrigger'
 import { useApp }          from '../../hooks/useApp'
 import { getLoadedAssets } from '../../utils/assetLoader'
 import './Intro.css'
+import ScrollIcon from './icons/ScrollIcon'
+import PlayIcon from './icons/PlayIcon'
+import IntroButton from './IntroButton/IntroButton'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -194,12 +197,6 @@ export default function Intro() {
     })
   }, [frameCount, drawFrame, finishIntro, tearDown])
 
-  const deactivate = useCallback(() => {
-    tearDown()
-    setMode('idle')
-    setHintHidden(false)
-  }, [tearDown])
-
   if (introComplete) return null
 
   const isScrollActive = mode === 'scroll'
@@ -222,37 +219,23 @@ export default function Intro() {
 
       {/* Mode buttons — fixed over the canvas */}
       <div className="intro__controls">
-        <button
-          className={`intro__btn${isScrollActive ? ' intro__btn--active' : ''}`}
-          onClick={isScrollActive ? deactivate : activateScroll}
-          aria-pressed={isScrollActive}
-          aria-label="Scroll mode"
-        >
-          {/* Scroll icon */}
-          <svg className="intro__btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="8" y="2" width="8" height="14" rx="4" stroke="currentColor" strokeWidth="1.5"/>
-            <circle cx="12" cy="7" r="1.5" fill="currentColor"/>
-            <path d="M8 19l4 3 4-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span>Scroll</span>
-        </button>
+        <IntroButton
+          onClick={activateScroll}
+          label="Scroll mode"
+          isHidden={hintHidden}
+          isActive={isScrollActive}
+          icon={<ScrollIcon />}
+          labelText="Scroll"
+          />
 
-        <button
-          className={`intro__btn${isAutoActive ? ' intro__btn--active' : ''}`}
-          onClick={isAutoActive ? deactivate : activateAuto}
-          aria-pressed={isAutoActive}
-          aria-label="Auto play"
-        >
-          {/* Play icon */}
-          <svg className="intro__btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            {isAutoActive
-              ? <><rect x="6"  y="5" width="4" height="14" rx="1" fill="currentColor"/>
-                  <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></>
-              : <path d="M6 4.5l14 7.5-14 7.5V4.5z" fill="currentColor"/>
-            }
-          </svg>
-          <span>{isAutoActive ? 'Pause' : 'Auto play'}</span>
-        </button>
+        <IntroButton
+          onClick={activateAuto}
+          label="Auto play"
+          isHidden={hintHidden}
+          isActive={isAutoActive}
+          icon={<PlayIcon />}
+          labelText="Auto play"
+        />
       </div>
 
       {/* Scroll hint */}
