@@ -39,7 +39,11 @@ export function AppProvider({ children }) {
   // ── INTRO STATE ───────────────────────────────────────────────
   // introComplete: true after the scroll-driven image sequence has
   //                fully played through. Unlocks the main sections.
+  // introExiting:  true while the crossfade is in progress (canvas
+  //                fading out, hero fading in) — Main is rendered
+  //                during this window so both are visible at once.
   const [introComplete, setIntroComplete] = useState(false)
+  const [introExiting,  setIntroExiting]  = useState(false)
 
   // ── ACTIONS ───────────────────────────────────────────────────
   // Wrapped in useCallback so components that receive these as props
@@ -71,9 +75,17 @@ export function AppProvider({ children }) {
     setAudioEnabled(prev => !prev)
   }, [])
 
-  // Called by the Intro component when the sequence ends.
+  // Called by the Intro component when the exit crossfade begins.
+  // Causes Main to mount (hero renders at opacity 0) while the canvas
+  // is still visible so the two can fade simultaneously.
+  const exitIntro = useCallback(() => {
+    setIntroExiting(true)
+  }, [])
+
+  // Called by the Intro component when the crossfade is done.
   const completeIntro = useCallback(() => {
     setIntroComplete(true)
+    setIntroExiting(false)
   }, [])
 
   // ── CONTEXT VALUE ─────────────────────────────────────────────
@@ -87,11 +99,13 @@ export function AppProvider({ children }) {
     audioEnabled,
     audioReady,
     introComplete,
+    introExiting,
     // actions
     onProgress,
     enter,
     onAudioReady,
     toggleAudio,
+    exitIntro,
     completeIntro,
   }
 

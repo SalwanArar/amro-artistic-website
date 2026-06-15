@@ -154,6 +154,12 @@ html.intro-active::-webkit-scrollbar {
   transform-origin: top center;
 }
 
+/* ── Scroll transition ───────────────────────────────────────── */
+.intro--fade-out {
+  pointer-events: none; /* Prevent interaction during fade-out */
+  transition: opacity 0.8s ease-out;
+}
+
 @keyframes intro-arrow-pulse {
   0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
   50%       { opacity: 1;   transform: scaleY(1);   }

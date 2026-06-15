@@ -28,7 +28,7 @@ const PX_PER_FRAME  = 24      // scroll distance per frame (scroll mode)
 const AUTO_DURATION = 11      // seconds to play all frames (auto mode)
 
 export default function Intro() {
-  const { introComplete, completeIntro } = useApp()
+  const { introComplete, exitIntro, completeIntro } = useApp()
 
   const containerRef  = useRef(null)
   const canvasRef     = useRef(null)
@@ -124,12 +124,62 @@ export default function Intro() {
   }, [introComplete, drawFrame, resizeCanvas, tearDown])
 
   // ── Finish intro (scroll + auto modes) ────────────────────────
+  //
+  // Crossfade strategy:
+  //   1. Fix the canvas-wrap to screen (full-viewport overlay, z-index 50)
+  //   2. Scroll to top so the hero is in position when it mounts
+  //   3. Call exitIntro() → App renders Main, hero mounts at opacity 0
+  //   4. Two RAFs later (React commit + browser paint) start the GSAP crossfade:
+  //      - canvas-wrap fades OUT over 1.2 s
+  //      - hero fades IN simultaneously (driven from Hero via introExiting)
+  //   5. onComplete → completeIntro() → Intro unmounts (already invisible)
   const finishIntro = useCallback(() => {
     if (finishedRef.current || introComplete) return
     finishedRef.current = true
     tearDown()
-    completeIntro()
-  }, [introComplete, completeIntro, tearDown])
+
+    const canvasWrap = containerRef.current?.querySelector('.intro__canvas-wrap')
+
+    // Scroll to top before hero mounts so it is at the right position
+    window.scrollTo({ top: 0, behavior: 'instant' })
+
+    if (canvasWrap) {
+      // Lift canvas out of flow so it can overlay the hero that's about to render
+      gsap.set(canvasWrap, {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100vh',
+        zIndex: 50,
+      })
+    }
+
+    // Fade out the control buttons so they don't hover over the hero
+    const controlsEl = containerRef.current?.querySelector('.intro__controls')
+    if (controlsEl) {
+      gsap.to(controlsEl, { opacity: 0, duration: 0.35, ease: 'power2.out' })
+    }
+
+    // Tell App to render Main (hero mounts behind the fixed canvas at opacity 0)
+    exitIntro()
+
+    // Wait two frames: first for React to commit, second for the browser to paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (canvasWrap) {
+          gsap.to(canvasWrap, {
+            opacity: 0,
+            duration: 1.2,
+            ease: 'power2.inOut',
+            onComplete: completeIntro,
+          })
+        } else {
+          completeIntro()
+        }
+      })
+    })
+  }, [introComplete, exitIntro, completeIntro, tearDown])
 
   // ── Activate SCROLL mode ──────────────────────────────────────
   const activateScroll = useCallback(() => {
@@ -205,7 +255,8 @@ export default function Intro() {
   return (
     <section
       ref={containerRef}
-      className="intro"
+      // className="intro"
+      className={`intro${mode !== 'idle' ? ' intro--fade-out' : ''}`}
       aria-label="Intro sequence"
     >
       {/* Canvas */}

@@ -11,31 +11,26 @@
 // any ScrollTrigger animations are registered inside Intro.
 // ─────────────────────────────────────────────────────────────────
 
-import { useEffect }   from 'react'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { AppProvider } from './context/AppContext'
-import { useApp }      from './hooks/useApp'
-import AudioToggle     from './components/AudioToggle/AudioToggle'
-import { useAudio }    from './hooks/useAudio'
-import { usePreloader } from './hooks/usePreloader'
-import { useScroll }    from './hooks/useScroll'
-import Preloader        from './components/Preloader/Preloader'
-import Intro            from './components/Intro/Intro'
-import Main             from './components/Main/Main'
+import { useEffect }            from 'react'
+import { ScrollTrigger }        from 'gsap/ScrollTrigger'
+import { AppProvider }          from './context/AppContext'
+import { useApp }               from './hooks/useApp'
+import AudioToggle              from './components/AudioToggle/AudioToggle'
+import { useAudio }             from './hooks/useAudio'
+import { usePreloader }         from './hooks/usePreloader'
+import { useScroll }            from './hooks/useScroll'
+import Preloader                from './components/Preloader/Preloader'
+import Intro                    from './components/Intro/Intro'
+import Main                     from './components/Main/Main'
 
 function AppInner() {
-  // Start loading all assets immediately
   usePreloader()
-
-  // Prepare background music and sync it with app state.
   useAudio()
-
-  // Init Lenis smooth scroll + wire to GSAP ticker
   const lenisRef = useScroll()
 
-  const { isEntered, introComplete } = useApp()
+  const { isEntered, introComplete, introExiting } = useApp()
 
-  // Reset scroll position once the intro unmounts so main content is in view
+  // Reset scroll once intro is fully done so main content starts at top
   useEffect(() => {
     if (!introComplete) return
     lenisRef.current?.scrollTo(0, { immediate: true })
@@ -45,15 +40,14 @@ function AppInner() {
 
   return (
     <>
-      {/* Loading overlay — always rendered first */}
       <Preloader />
-
       <AudioToggle />
 
-      {/* Only mount scroll content after user clicks Enter */}
+      {/* Intro plays until all frames are shown */}
       {isEntered && !introComplete && <Intro />}
 
-      {isEntered && introComplete && <Main />}
+      {/* Main mounts during introExiting so hero can crossfade with the canvas */}
+      {isEntered && (introComplete || introExiting) && <Main />}
     </>
   )
 }
