@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Howl } from 'howler'
 import { useApp } from './useApp'
 
-const BACKGROUND_MUSIC_SRC = '/audio/background-music.mp3'
+const BACKGROUND_MUSIC_SRC = `${import.meta.env.BASE_URL}audio/background-music.mp3`
 const BACKGROUND_MUSIC_VOLUME = 0.35
 
 export function useAudio() {
