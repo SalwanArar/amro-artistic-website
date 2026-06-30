@@ -1,43 +1,35 @@
 // src/utils/assetLoader.js
 // ─────────────────────────────────────────────────────────────────
-// Preloads all heavy assets (frames, audio, etc.) before the user
-// enters the site. Reports progress via a callback so the Preloader
-// UI can display accurate percentage + current file name.
+// Preloads all heavy assets (frames, audio) before the user enters
+// the site. Reports progress via a callback so the Preloader UI can
+// display accurate percentage + current file name.
 //
-// Usage:
-//   import { loadAllAssets } from './assetLoader'
-//   await loadAllAssets(onProgress)   // onProgress(pct, label)
+// Assets live in src/assets/ so Vite resolves and hashes their URLs
+// at build time — no manual base-URL prefixing required.
 // ─────────────────────────────────────────────────────────────────
 
-// ── FRAME CONFIG ─────────────────────────────────────────────────
-const FRAME_COUNT  = 189
-const FRAME_START  = 1
-const FRAME_DIR    = `${import.meta.env.BASE_URL}frames/`
-const FRAME_PREFIX = 'frame_'
-const FRAME_EXT    = '.png'
+// ── FRAME URLS ───────────────────────────────────────────────────
+// Vite resolves each PNG at build time and returns its final URL
+// (hashed, base-prefixed). Sorted by filename → correct frame order.
+const _frameGlob = import.meta.glob(
+  '../assets/frames/*.png',
+  { query: '?url', import: 'default', eager: true }
+)
 
-// Zero-pad a number to 5 digits: 0 → "00000", 42 → "00042"
-const pad5 = n => String(n).padStart(5, '0')
+const _frameUrls = Object.entries(_frameGlob)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, url]) => url)
 
-// Build the full ordered list of frame URLs
-export const buildFrameUrls = () =>
-  Array.from({ length: FRAME_COUNT }, (_, i) =>
-    `${FRAME_DIR}${FRAME_PREFIX}${pad5(FRAME_START + i)}${FRAME_EXT}`
-  )
+const FRAME_COUNT = _frameUrls.length
+
+export const buildFrameUrls = () => _frameUrls
 
 // ── AUDIO ASSETS ─────────────────────────────────────────────────
-// Add your audio files here as you produce them.
-// Each entry: { url: string, label: string }
 const AUDIO_ASSETS = [
-  // { url: `${import.meta.env.BASE_URL}audio/bg-music.mp3`,  label: 'Background music'  },
-  // { url: `${import.meta.env.BASE_URL}audio/sfx-click.mp3`, label: 'Click SFX'         },
+  // { url: bgMusicUrl, label: 'Background music' },
 ]
 
-// ── OTHER ASSETS (fonts loaded via CSS, no entry needed) ─────────
-
 // ── CORE LOADER ──────────────────────────────────────────────────
-// Loads a single Image and resolves when it's decoded and ready
-// to paint — meaning it can be drawn to a <canvas> immediately.
 const loadImage = url =>
   new Promise((resolve, reject) => {
     const img = new Image()
@@ -46,15 +38,12 @@ const loadImage = url =>
     img.src     = url
   })
 
-// Loads a single audio file via fetch so the browser caches it.
 const loadAudio = url =>
   fetch(url, { cache: 'force-cache' }).then(r => {
     if (!r.ok) throw new Error(`Failed to load audio: ${url}`)
   })
 
 // ── BATCH LOADER ─────────────────────────────────────────────────
-// Loads assets in parallel batches to maximise throughput while
-// staying within browser connection limits (~6 per origin).
 const BATCH_SIZE = 10
 
 const loadInBatches = async (tasks, onProgress, startPct, endPct) => {
@@ -64,13 +53,11 @@ const loadInBatches = async (tasks, onProgress, startPct, endPct) => {
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const batch = tasks.slice(i, i + BATCH_SIZE)
-
     const batchResults = await Promise.allSettled(
       batch.map(async task => {
         const result = await task.fn()
         done++
-        const pct   = startPct + ((done / total) * (endPct - startPct))
-        onProgress(Math.round(pct), task.label)
+        onProgress(Math.round(startPct + (done / total) * (endPct - startPct)), task.label)
         return result
       })
     )
@@ -81,13 +68,6 @@ const loadInBatches = async (tasks, onProgress, startPct, endPct) => {
 }
 
 // ── PUBLIC API ────────────────────────────────────────────────────
-// loadAllAssets(onProgress) → Promise<{ frames: Image[], ... }>
-//
-// onProgress(pct: number, label: string) is called after each asset.
-// pct is 0–100. label is a human-readable name for the loading UI.
-//
-// The returned object is cached on the module so Intro.jsx can import
-// and use the frames directly without reloading.
 let _cache = null
 
 export const loadAllAssets = async (onProgress = () => {}) => {
@@ -96,22 +76,18 @@ export const loadAllAssets = async (onProgress = () => {}) => {
     return _cache
   }
 
-  // ── Phase 1: frames (0 → 95 %) ─────────────────────────────────
-  const frameUrls = buildFrameUrls()
   const frameImages = new Array(FRAME_COUNT)
-
-  const frameTasks = frameUrls.map((url, i) => ({
+  const frameTasks  = _frameUrls.map((url, i) => ({
     label: `Frame ${i + 1} / ${FRAME_COUNT}`,
     fn: async () => {
       const img = await loadImage(url)
-      frameImages[i] = img   // store in order
+      frameImages[i] = img
       return img
     },
   }))
 
   await loadInBatches(frameTasks, onProgress, 0, AUDIO_ASSETS.length > 0 ? 95 : 100)
 
-  // ── Phase 2: audio (95 → 100 %) ────────────────────────────────
   if (AUDIO_ASSETS.length > 0) {
     const audioTasks = AUDIO_ASSETS.map(({ url, label }) => ({
       label,
@@ -121,11 +97,8 @@ export const loadAllAssets = async (onProgress = () => {}) => {
   }
 
   onProgress(100, 'Ready')
-
   _cache = { frames: frameImages }
   return _cache
 }
 
-// Expose the cache directly so Intro.jsx can grab frames
-// without going through the async load path again.
 export const getLoadedAssets = () => _cache
