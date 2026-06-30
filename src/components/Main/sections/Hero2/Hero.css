@@ -7,100 +7,90 @@
 .hero__container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 95%;
 
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  gap: clamp(12px, 2.5vh, 32px);
 }
 
-/* min(vw, vh) keeps the circle on-screen in both portrait and landscape */
+/* Square reference box; all circular layers stack inside */
 .hero__center-box {
   position: relative;
   flex-shrink: 0;
-  width: min(52vw, 56vh);
+  width: min(90vw, 75vh);
   aspect-ratio: 1 / 1;
 }
 
-.hero__geo-circle {
+/* Spinning outer decoration */
+.hero__geo {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 100%;
   height: auto;
   pointer-events: none;
-  animation: spin 60s linear infinite;
+  animation: heroSpin 60s linear infinite;
 }
 
-/* Ring is 56 % of center-box so it scales automatically */
-.hero__ring {
+/* SVG donut nav — sits on top of the geo circle */
+.hero__nav-svg {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
-  width: 56%;
-  height: 56%;
+  width: 65%;
+  height: 65%;
+  overflow: visible;
 
   border-radius: 50%;
   background: linear-gradient(90deg, #0C4774 0%, #131744 50%, #000000 100%);
   border: clamp(2px, 0.35vmin, 5px) solid rgb(255, 255, 255);
 }
 
-/* Logo container is 30 % of center-box */
-.hero__logo-container {
+.hero__nav-tab {
+  cursor: pointer;
+  outline: none;
+}
+
+.hero__nav-tab:focus-visible path {
+  stroke: white;
+  stroke-width: 2.5;
+}
+
+/* Logo circle — centered inside the ring */
+.hero__logo-border {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
-  width: 30%;
-  height: 30%;
-
+  width: 40%;
+  height: 40%;
   border: clamp(2px, 0.28vmin, 4px) solid white;
   border-radius: 50%;
-}
-
-.hero__logo-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  pointer-events: none;
 }
 
 .hero__logo {
   position: absolute;
-  width: 100%;
-}
-
-.hero__nav-label {
-  position: absolute;
   top: 50%;
   left: 50%;
-  transform-origin: center;
-  font-size: clamp(0.45rem, 1.15vmin, 0.95rem);
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  white-space: nowrap;
-}
-
-.hero__nav-sep {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(8px, 1.1vmin, 18px);
-  height: clamp(8px, 1.1vmin, 18px);
+  transform: translate(-50%, -50%);
+  width: 95%;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, .55);
+  background:
+    radial-gradient(circle at 82% 12%, #d9a36e 0%, rgba(217, 163, 110, .55) 1%, rgba(217, 163, 110, 0) 40%),
+    radial-gradient(circle at 68% 70%, #3c2f7a 0%, rgba(60, 47, 122, .5) 22%, rgba(60, 47, 122, 0) 55%),
+    radial-gradient(circle at 8%  90%, #2f7fd6 0%, rgba(47, 127, 214, .65) 20%, rgba(47, 127, 214, 0) 52%),
+    #04040a;
 }
 
+/* Bottom text */
 .hero__bottom-box {
-position: relative;
-
+  position: absolute;
+  left: 50%;
+  bottom: -30px;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -114,7 +104,7 @@ position: relative;
 }
 
 .hero__title {
-  margin-top: clamp(4px, 0.8vh, 10px);
+  /* margin-top: clamp(4px, 0.8vh, 10px); */
   color: white;
   font-size: clamp(1.5rem, 3.5vw, 5rem);
   font-weight: 800;
@@ -123,7 +113,7 @@ position: relative;
 }
 
 .hero__ornament {
-  margin-top: clamp(10px, 2vh, 28px);
+  /* margin-top: clamp(10px, 2vh, 28px); */
   display: flex;
   align-items: center;
   width: min(700px, 70vw);
@@ -148,12 +138,14 @@ position: relative;
 }
 
 .hero__line--short {
+  position: absolute;
+  bottom: 10px;
   width: 60%;
   align-self: center;
 }
 
-/* Translate baked in so the animation can't override the centering */
-@keyframes spin {
+/* Translate baked in so the rotation can't override the centering */
+@keyframes heroSpin {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to   { transform: translate(-50%, -50%) rotate(360deg); }
 }
