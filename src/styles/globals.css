@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 :root {
   --midnight: #111534;
@@ -30,4 +31,5 @@ body {
   min-height: 100vh;
   background: var(--midnight-deep) var(--site-background-image) center / cover fixed no-repeat;
   overflow-x: hidden;
+  font-family: 'Sora', sans-serif;
 }
