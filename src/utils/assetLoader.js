@@ -12,7 +12,7 @@
 // ── FRAME CONFIG ─────────────────────────────────────────────────
 const FRAME_COUNT  = 189
 const FRAME_START  = 1
-const FRAME_DIR    = '/frames/'
+const FRAME_DIR    = `${import.meta.env.BASE_URL}frames/`
 const FRAME_PREFIX = 'frame_'
 const FRAME_EXT    = '.png'
 
@@ -29,8 +29,8 @@ export const buildFrameUrls = () =>
 // Add your audio files here as you produce them.
 // Each entry: { url: string, label: string }
 const AUDIO_ASSETS = [
-  // { url: '/audio/bg-music.mp3',  label: 'Background music'  },
-  // { url: '/audio/sfx-click.mp3', label: 'Click SFX'         },
+  // { url: `${import.meta.env.BASE_URL}audio/bg-music.mp3`,  label: 'Background music'  },
+  // { url: `${import.meta.env.BASE_URL}audio/sfx-click.mp3`, label: 'Click SFX'         },
 ]
 
 // ── OTHER ASSETS (fonts loaded via CSS, no entry needed) ─────────
