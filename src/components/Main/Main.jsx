@@ -1,5 +1,5 @@
 import './Main.css'
-import Hero from './sections/Hero2/Hero'
+import Hero from './sections/Hero/Hero'
 
 export default function Main() {
   return (
