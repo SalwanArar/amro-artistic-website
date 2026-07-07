@@ -22,6 +22,14 @@
   aspect-ratio: 1 / 1;
 }
 
+/* Plain grouping layer for the chrome entrance tween — deliberately has no
+   transform/animation of its own so GSAP can own opacity/scale on it
+   without clobbering any child's static or keyframe-driven transform. */
+.hero__chrome {
+  position: absolute;
+  inset: 0;
+}
+
 /* Spinning outer decoration */
 .hero__geo {
   position: absolute;

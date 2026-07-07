@@ -17,6 +17,12 @@ import { gsap }            from 'gsap'
 import { ScrollTrigger }   from 'gsap/ScrollTrigger'
 import { useApp }          from '../../hooks/useApp'
 import { getLoadedAssets } from '../../utils/assetLoader'
+import {
+  LAST_FRAME_WIDTH, LAST_FRAME_HEIGHT,
+  LOGO_CENTER_X, LOGO_CENTER_Y, LOGO_DIAMETER,
+  FLIGHT_DURATION, FLIGHT_EASE,
+} from '../../constants/heroTransition'
+import logoSrc from '../../assets/images/Logo.png'
 import './Intro.css'
 import ScrollIcon from './icons/ScrollIcon'
 import PlayIcon from './icons/PlayIcon'
@@ -28,7 +34,7 @@ const PX_PER_FRAME  = 24      // scroll distance per frame (scroll mode)
 const AUTO_DURATION = 11      // seconds to play all frames (auto mode)
 
 export default function Intro() {
-  const { introComplete, exitIntro, completeIntro } = useApp()
+  const { introComplete, exitIntro, completeIntro, heroLogoRef } = useApp()
 
   const containerRef  = useRef(null)
   const canvasRef     = useRef(null)
@@ -38,6 +44,7 @@ export default function Intro() {
   const autoTweenRef  = useRef(null)    // active auto-play tween
   const roRef         = useRef(null)    // ResizeObserver
   const finishedRef   = useRef(false)   // guards finishIntro from firing twice
+  const ghostRef      = useRef(null)    // floating logo used for the shared-element flight
 
   const [mode,         setMode]         = useState('idle')    // 'idle' | 'scroll' | 'auto'
   const [canvasVisible,setCanvasVisible] = useState(false)
@@ -123,22 +130,69 @@ export default function Intro() {
     }
   }, [introComplete, drawFrame, resizeCanvas, tearDown])
 
+  // ── Compute the on-screen circle the canvas is currently showing ──
+  //
+  // The final frame's logo is baked into its pixel content — there is no
+  // DOM element for it. Its position/size within the 640x360 source frame
+  // was measured once (see constants/heroTransition.js) and is reprojected
+  // here through the same "cover fit" math drawFrame() uses, so this stays
+  // correct at any viewport size/DPR without needing to guess.
+  const measureCanvasLogoRect = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const rect = canvas.getBoundingClientRect()
+    const scale = Math.max(rect.width / LAST_FRAME_WIDTH, rect.height / LAST_FRAME_HEIGHT)
+    const drawnW = LAST_FRAME_WIDTH * scale
+    const drawnH = LAST_FRAME_HEIGHT * scale
+    const offsetX = rect.left + (rect.width - drawnW) / 2
+    const offsetY = rect.top + (rect.height - drawnH) / 2
+    return {
+      centerX:  offsetX + LOGO_CENTER_X * scale,
+      centerY:  offsetY + LOGO_CENTER_Y * scale,
+      diameter: LOGO_DIAMETER * scale,
+    }
+  }, [])
+
   // ── Finish intro (scroll + auto modes) ────────────────────────
   //
-  // Crossfade strategy:
+  // Shared-element strategy (Flutter-Hero-style flight, not a crossfade):
   //   1. Fix the canvas-wrap to screen (full-viewport overlay, z-index 50)
   //   2. Scroll to top so the hero is in position when it mounts
-  //   3. Call exitIntro() → App renders Main, hero mounts at opacity 0
-  //   4. Two RAFs later (React commit + browser paint) start the GSAP crossfade:
-  //      - canvas-wrap fades OUT over 1.2 s
-  //      - hero fades IN simultaneously (driven from Hero via introExiting)
-  //   5. onComplete → completeIntro() → Intro unmounts (already invisible)
+  //   3. Call exitIntro() → App renders Main; Hero mounts with its real
+  //      logo already hidden (see RAF #1) so it can never flash into view
+  //      at rest before the flight lands on it.
+  //   4. RAF #1 (React has committed, browser hasn't painted yet): hide
+  //      Hero's real logo.
+  //   5. RAF #2 (layout is now stable and paintable): measure both the
+  //      canvas's baked-in logo circle and Hero's real logo rect, drop a
+  //      floating "ghost" <img> (same Logo.png) exactly on top of the
+  //      canvas's logo, hide the whole canvas in the same tick (the swap
+  //      is invisible because the ghost is pixel-identical to what was
+  //      just there), then tween the ghost's transform (translate+scale
+  //      only) to Hero's resting rect.
+  //   6. onComplete → swap ghost for the real Hero logo (again pixel-
+  //      identical, so invisible) → completeIntro() unmounts Intro.
   const finishIntro = useCallback(() => {
     if (finishedRef.current || introComplete) return
     finishedRef.current = true
     tearDown()
 
     const canvasWrap = containerRef.current?.querySelector('.intro__canvas-wrap')
+
+    // Every child of .intro is (or is about to become) position:fixed, so
+    // the section's own scroll-mode height (set in the canvas-init effect
+    // above, up to ~4500px for a 189-frame sequence) is now dead weight —
+    // but it still occupies that much *document* flow until Intro unmounts.
+    // Left alone, that pushes Hero/Main that many pixels down the page for
+    // the whole hand-off, so measureCanvasLogoRect/getBoundingClientRect
+    // would target Hero's pre-scroll position instead of where it actually
+    // rests — sending the flight toward a spot far below the viewport.
+    // Collapsing it now (purely a layout change — every visible child is
+    // already fixed-position, so nothing on screen moves) puts Hero at its
+    // true resting position immediately.
+    if (containerRef.current) {
+      containerRef.current.style.height = '0px'
+    }
 
     // Scroll to top before hero mounts so it is at the right position
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -161,25 +215,75 @@ export default function Intro() {
       gsap.to(controlsEl, { opacity: 0, duration: 0.35, ease: 'power2.out' })
     }
 
-    // Tell App to render Main (hero mounts behind the fixed canvas at opacity 0)
+    // Tell App to render Main (hero mounts behind the fixed canvas)
     exitIntro()
 
-    // Wait two frames: first for React to commit, second for the browser to paint
+    // RAF #1: React has committed Hero's DOM but the browser hasn't
+    // painted it yet — hide the real logo now so it's never visible at
+    // rest before the ghost lands on it.
     requestAnimationFrame(() => {
+      if (heroLogoRef.current) {
+        gsap.set(heroLogoRef.current, { autoAlpha: 0 })
+      }
+
+      // RAF #2: one more frame so layout is settled and both rects can
+      // be measured accurately.
       requestAnimationFrame(() => {
-        if (canvasWrap) {
-          gsap.to(canvasWrap, {
-            opacity: 0,
-            duration: 1.2,
-            ease: 'power2.inOut',
-            onComplete: completeIntro,
-          })
-        } else {
-          completeIntro()
+        const sourceRect = measureCanvasLogoRect()
+        const destEl     = heroLogoRef.current
+        const destRect   = destEl?.getBoundingClientRect()
+
+        if (!sourceRect || !destRect || !ghostRef.current) {
+          // Defensive fallback — measurement wasn't possible, fall back
+          // to a plain fade so the site never gets stuck mid-transition.
+          if (destEl) gsap.set(destEl, { autoAlpha: 1 })
+          if (canvasWrap) {
+            gsap.to(canvasWrap, { opacity: 0, duration: 1.2, ease: 'power2.inOut', onComplete: completeIntro })
+          } else {
+            completeIntro()
+          }
+          return
         }
+
+        const ghost = ghostRef.current
+        const destCenterX = destRect.left + destRect.width / 2
+        const destCenterY = destRect.top + destRect.height / 2
+
+        // Ghost's resting box = Hero's real logo rect exactly. It starts
+        // scaled/translated to alias the canvas's logo circle instead
+        // (the FLIP "invert" step), so revealing it causes no jump.
+        gsap.set(ghost, {
+          top: destRect.top,
+          left: destRect.left,
+          width: destRect.width,
+          height: destRect.height,
+          x: sourceRect.centerX - destCenterX,
+          y: sourceRect.centerY - destCenterY,
+          scaleX: sourceRect.diameter / destRect.width,
+          scaleY: sourceRect.diameter / destRect.height,
+          autoAlpha: 1,
+        })
+
+        // The swap: canvas out, ghost in, same instant, same pixels.
+        if (canvasWrap) gsap.set(canvasWrap, { autoAlpha: 0 })
+
+        gsap.to(ghost, {
+          x: 0,
+          y: 0,
+          scaleX: 1,
+          scaleY: 1,
+          duration: FLIGHT_DURATION,
+          ease: FLIGHT_EASE,
+          onComplete: () => {
+            // The swap back: real logo in, ghost out, same instant, same pixels.
+            if (destEl) gsap.set(destEl, { autoAlpha: 1 })
+            gsap.set(ghost, { autoAlpha: 0 })
+            completeIntro()
+          },
+        })
       })
     })
-  }, [introComplete, exitIntro, completeIntro, tearDown])
+  }, [introComplete, exitIntro, completeIntro, tearDown, heroLogoRef, measureCanvasLogoRect])
 
   // ── Activate SCROLL mode ──────────────────────────────────────
   const activateScroll = useCallback(() => {
@@ -297,6 +401,16 @@ export default function Intro() {
         <span>Choose a mode</span>
         <div className="intro__hint-arrow" />
       </div>
+
+      {/* Shared-element flight target — the same Logo.png Hero uses.
+          Hidden until finishIntro() positions it; see measureCanvasLogoRect. */}
+      <img
+        ref={ghostRef}
+        src={logoSrc}
+        className="intro__logo-ghost"
+        alt=""
+        aria-hidden="true"
+      />
     </section>
   )
 }

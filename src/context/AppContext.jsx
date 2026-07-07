@@ -5,7 +5,7 @@
 // or writes to this context so they stay in sync without prop drilling.
 // ─────────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { AppContext } from './AppContextValue'
 
 // ── 1. CREATE CONTEXT ────────────────────────────────────────────
@@ -39,11 +39,17 @@ export function AppProvider({ children }) {
   // ── INTRO STATE ───────────────────────────────────────────────
   // introComplete: true after the scroll-driven image sequence has
   //                fully played through. Unlocks the main sections.
-  // introExiting:  true while the crossfade is in progress (canvas
-  //                fading out, hero fading in) — Main is rendered
-  //                during this window so both are visible at once.
+  // introExiting:  true while the intro→hero hand-off is in progress
+  //                (shared-element logo flight + hero chrome reveal) —
+  //                Main is rendered during this window so both are
+  //                mounted at once. See Intro.jsx's finishIntro().
   const [introComplete, setIntroComplete] = useState(false)
   const [introExiting,  setIntroExiting]  = useState(false)
+
+  // Shared handle to Hero's real logo <img>. Intro reads its rect (FLIP
+  // destination) and toggles its visibility during the hand-off — this is a
+  // plain ref (not state) so wiring it up never triggers a re-render.
+  const heroLogoRef = useRef(null)
 
   // ── ACTIONS ───────────────────────────────────────────────────
   // Wrapped in useCallback so components that receive these as props
@@ -75,14 +81,14 @@ export function AppProvider({ children }) {
     setAudioEnabled(prev => !prev)
   }, [])
 
-  // Called by the Intro component when the exit crossfade begins.
-  // Causes Main to mount (hero renders at opacity 0) while the canvas
-  // is still visible so the two can fade simultaneously.
+  // Called by the Intro component when the exit hand-off begins.
+  // Causes Main to mount (Hero's real logo starts hidden — see
+  // heroLogoRef — until Intro's shared-element flight lands on it).
   const exitIntro = useCallback(() => {
     setIntroExiting(true)
   }, [])
 
-  // Called by the Intro component when the crossfade is done.
+  // Called by the Intro component when the hand-off is done.
   const completeIntro = useCallback(() => {
     setIntroComplete(true)
     setIntroExiting(false)
@@ -100,6 +106,7 @@ export function AppProvider({ children }) {
     audioReady,
     introComplete,
     introExiting,
+    heroLogoRef,
     // actions
     onProgress,
     enter,

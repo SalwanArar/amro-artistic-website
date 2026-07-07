@@ -154,6 +154,25 @@ html.intro-active::-webkit-scrollbar {
   transform-origin: top center;
 }
 
+/* ── Shared-element logo flight ──────────────────────────────────
+   Positioned imperatively (top/left/width/height + GSAP x/y/scale) from
+   Intro.jsx — the values here are just a safe, invisible default before
+   finishIntro() takes over. */
+.intro__logo-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform;
+  z-index: 55; /* above .intro__canvas-wrap's z-index: 50 */
+  transform-origin: center center;
+}
+
 /* ── Scroll transition ───────────────────────────────────────── */
 .intro--fade-out {
   pointer-events: none; /* Prevent interaction during fade-out */

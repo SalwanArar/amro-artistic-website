@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap/gsap-core'
 import { useApp } from '../../../../hooks/useApp'
+import { FLIGHT_DURATION } from '../../../../constants/heroTransition'
 import './Hero.css'
 
 import logo from '../../../../assets/images/Logo.png'
@@ -53,18 +54,53 @@ function arcPath(r, start, end, flip) {
 }
 
 export default function Hero() {
-  const { introExiting } = useApp()
+  const { introExiting, heroLogoRef } = useApp()
   const heroRef = useRef(null)
   const [activeTab, setActiveTab] = useState(null)
   const [hoverTab, setHoverTab] = useState(null)
 
-  useEffect(() => {
+  // Reveal the surrounding chrome independently of the logo — the logo's
+  // own visibility is owned by Intro's shared-element flight (see
+  // Intro.jsx / heroLogoRef) and must never be part of an opacity tween,
+  // otherwise it would visibly fade while also flying in.
+  //
+  // useLayoutEffect (not useEffect) so the "from" state is committed
+  // before the browser's first paint of this mount — otherwise the
+  // chrome would flash at full opacity for one frame first.
+  useLayoutEffect(() => {
     if (!introExiting || !heroRef.current) return
-    gsap.fromTo(
-      heroRef.current,
-      { opacity: 0, scale: 1.06 },
-      { opacity: 1, scale: 1, duration: 1.2, delay: 0.1, ease: 'power2.inOut' }
-    )
+
+    // .hero__chrome is a plain, non-positioned grouping wrapper (see JSX)
+    // with no CSS transform of its own, so GSAP can safely own its
+    // transform for this tween without clobbering anything.
+    const chrome = heroRef.current.querySelector('.hero__chrome')
+    if (chrome) {
+      gsap.fromTo(
+        chrome,
+        { opacity: 0, scale: 1.06 },
+        { opacity: 1, scale: 1, duration: 1.1, delay: 0.15, ease: 'power2.inOut' }
+      )
+    }
+
+    // The logo's border-ring "clicks into place" right as the flown logo
+    // lands, instead of appearing early around an empty socket.
+    //
+    // Opacity only — deliberately no `scale` here. The real .hero__logo
+    // is a CHILD of this ring, so scaling the ring would visually scale
+    // the logo along with it; Intro measures the logo's rect (via
+    // heroLogoRef) as soon as Hero mounts, long before this tween's
+    // `delay` even starts, so the ghost's flight target would be
+    // computed against a shrunk logo and the real logo would then "pop"
+    // slightly larger the instant it's revealed. Opacity doesn't affect
+    // layout/rendered size, so it can't cause that.
+    const ring = heroRef.current.querySelector('.hero__logo-border')
+    if (ring) {
+      gsap.fromTo(
+        ring,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: 'power2.out', delay: Math.max(FLIGHT_DURATION - 0.25, 0) }
+      )
+    }
   }, [introExiting])
 
   function toggle(id) {
@@ -76,14 +112,18 @@ export default function Hero() {
       ref={heroRef}
       className="hero"
       aria-labelledby="hero-title"
-      style={{ opacity: introExiting ? 0 : 1 }}
     >
       <div className="hero__container">
 
         <div className="hero__center-box">
 
+          {/* Grouping wrapper so the entrance tween can scale/fade the
+              surrounding chrome as one unit without touching the logo,
+              which is animated separately by Intro's shared-element flight. */}
+          <div className="hero__chrome">
+
           <img className="hero__geo" src={geoCircle} alt="" aria-hidden="true" />
-          
+
           <svg
             className="hero__nav-svg"
             viewBox="0 0 520 520"
@@ -178,10 +218,6 @@ export default function Hero() {
             })}
           </svg>
 
-          <div className="hero__logo-border">
-            <img className="hero__logo" src={logo} alt="Amro Gharz" />
-          </div>
-
           <div className="hero__bottom-box">
             <p className="hero__subtitle">Learn the Art Beyond Mediums</p>
             <h1 id="hero-title" className="hero__title">AMRO GHARZ</h1>
@@ -193,6 +229,12 @@ export default function Hero() {
               </div>
               <img src={blueSpiral} alt="" aria-hidden="true" className="hero__spiral" />
             </div>
+          </div>
+
+          </div>
+
+          <div className="hero__logo-border">
+            <img className="hero__logo" src={logo} alt="Amro Gharz" ref={heroLogoRef} />
           </div>
         </div>
 
