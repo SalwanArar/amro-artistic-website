@@ -30,6 +30,9 @@ body,
 body {
   min-height: 100vh;
   background: var(--midnight-deep) var(--site-background-image) center / cover fixed no-repeat;
+  -webkit-background:  var(--midnight-deep) var(--site-background-image) center / cover fixed no-repeat; /* Safari 3-4, Chrome 1-3 */
+  -moz-background:  var(--midnight-deep) var(--site-background-image) center / cover fixed no-repeat;    /* Firefox 3.6 */
+  -o-background:  var(--midnight-deep) var(--site-background-image) center / cover fixed no-repeat; 
   overflow-x: hidden;
   font-family: 'Sora', sans-serif;
 }
