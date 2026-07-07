@@ -61,46 +61,60 @@ export default function Hero() {
 
   // Reveal the surrounding chrome independently of the logo — the logo's
   // own visibility is owned by Intro's shared-element flight (see
-  // Intro.jsx / heroLogoRef) and must never be part of an opacity tween,
-  // otherwise it would visibly fade while also flying in.
+  // Intro.jsx / heroLogoRef) and must never be part of a tween, otherwise
+  // it would visibly move/fade while also flying in.
   //
-  // useLayoutEffect (not useEffect) so the "from" state is committed
-  // before the browser's first paint of this mount — otherwise the
-  // chrome would flash at full opacity for one frame first.
+  // Each piece gets its own wrapper (.hero__spring-*) so it can spring in
+  // at its own speed/size instead of moving as one rigid block — bigger,
+  // background elements are slower and looser; smaller, foreground ones
+  // are snappier. elastic.out(amplitude, period) is GSAP's native
+  // spring-like ease; period controls how loose/tight the settle feels.
+  //
+  // useLayoutEffect (not useEffect) so each "from" state is committed
+  // before the browser's first paint of this mount — otherwise everything
+  // would flash at full opacity/size for one frame first.
   useLayoutEffect(() => {
     if (!introExiting || !heroRef.current) return
-
-    // .hero__chrome is a plain, non-positioned grouping wrapper (see JSX)
-    // with no CSS transform of its own, so GSAP can safely own its
-    // transform for this tween without clobbering anything.
-    const chrome = heroRef.current.querySelector('.hero__chrome')
-    if (chrome) {
-      gsap.fromTo(
-        chrome,
-        { opacity: 0, scale: 1.06 },
-        { opacity: 1, scale: 1, duration: 1.1, delay: 0.15, ease: 'power2.inOut' }
-      )
+    const root = heroRef.current
+    const spring = (selector, from, to) => {
+      const el = root.querySelector(selector)
+      if (el) gsap.fromTo(el, from, to)
     }
+
+    // Outer spinning geometric ring — biggest element, slowest/loosest spring.
+    spring(
+      '.hero__spring-geo',
+      { opacity: 0, scale: 1.8 },
+      { opacity: 1, scale: 1, duration: 2, delay: 0.05, ease: 'elastic.out(1, 0.6)' }
+    )
+
+    // Nav wheel — mid-size, snappier spring, pops in from smaller.
+    spring(
+      '.hero__spring-nav',
+      { opacity: 0, scale: 1.2 },
+      { opacity: 1, scale: 1, duration: 1.6, delay: 0.22, ease: 'elastic.out(1, 0.45)' }
+    )
+
+    // Subtitle/title/spirals — rises up while it springs into place.
+    spring(
+      '.hero__spring-text',
+      { opacity: 0, scale: 1.5, y: 24 },
+      { opacity: 1, scale: 1, y: 0, duration: 1.8, delay: 0.35, ease: 'elastic.out(1, 0.5)' }
+    )
 
     // The logo's border-ring "clicks into place" right as the flown logo
-    // lands, instead of appearing early around an empty socket.
-    //
-    // Opacity only — deliberately no `scale` here. The real .hero__logo
-    // is a CHILD of this ring, so scaling the ring would visually scale
-    // the logo along with it; Intro measures the logo's rect (via
-    // heroLogoRef) as soon as Hero mounts, long before this tween's
-    // `delay` even starts, so the ghost's flight target would be
-    // computed against a shrunk logo and the real logo would then "pop"
-    // slightly larger the instant it's revealed. Opacity doesn't affect
-    // layout/rendered size, so it can't cause that.
-    const ring = heroRef.current.querySelector('.hero__logo-border')
-    if (ring) {
-      gsap.fromTo(
-        ring,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.35, ease: 'power2.out', delay: Math.max(FLIGHT_DURATION - 0.25, 0) }
-      )
-    }
+    // lands — smallest/fastest/snappiest spring, timed so it settles right
+    // around when the flight finishes. It's a sibling of .hero__logo, not
+    // a parent (see Hero.css), specifically so it's free to scale here
+    // without affecting Intro's measurement of the logo's own rect.
+    spring(
+      '.hero__spring-ring',
+      { opacity: 0, scale: 1.7 },
+      {
+        opacity: 1, scale: 1, duration: 1, ease: 'elastic.out(1, 0.35)',
+        delay: Math.max(FLIGHT_DURATION - 0.55, 0),
+      }
+    )
   }, [introExiting])
 
   function toggle(id) {
@@ -117,13 +131,11 @@ export default function Hero() {
 
         <div className="hero__center-box">
 
-          {/* Grouping wrapper so the entrance tween can scale/fade the
-              surrounding chrome as one unit without touching the logo,
-              which is animated separately by Intro's shared-element flight. */}
-          <div className="hero__chrome">
+          <div className="hero__spring-geo">
+            <img className="hero__geo" src={geoCircle} alt="" aria-hidden="true" />
+          </div>
 
-          <img className="hero__geo" src={geoCircle} alt="" aria-hidden="true" />
-
+          <div className="hero__spring-nav">
           <svg
             className="hero__nav-svg"
             viewBox="0 0 520 520"
@@ -217,25 +229,31 @@ export default function Hero() {
               )
             })}
           </svg>
+          </div>
 
-          <div className="hero__bottom-box">
-            <p className="hero__subtitle">Learn the Art Beyond Mediums</p>
-            <h1 id="hero-title" className="hero__title">AMRO GHARZ</h1>
-            <div className="hero__ornament">
-              <img src={pinkSpiral} alt="" aria-hidden="true" className="hero__spiral" />
-              <div className="hero__line-wrap">
-                <span className="hero__line" />
-                <span className="hero__line hero__line--short" />
+          <div className="hero__spring-text">
+            <div className="hero__bottom-box">
+              <p className="hero__subtitle">Learn the Art Beyond Mediums</p>
+              <h1 id="hero-title" className="hero__title">AMRO GHARZ</h1>
+              <div className="hero__ornament">
+                <img src={pinkSpiral} alt="" aria-hidden="true" className="hero__spiral" />
+                <div className="hero__line-wrap">
+                  <span className="hero__line" />
+                  <span className="hero__line hero__line--short" />
+                </div>
+                <img src={blueSpiral} alt="" aria-hidden="true" className="hero__spiral" />
               </div>
-              <img src={blueSpiral} alt="" aria-hidden="true" className="hero__spiral" />
             </div>
           </div>
 
+          {/* Sibling of .hero__logo, not a parent — see Hero.css. Free to
+              spring/scale on its own without affecting the logo's measured
+              rect, which Intro's shared-element flight depends on. */}
+          <div className="hero__spring-ring">
+            <div className="hero__logo-border" />
           </div>
 
-          <div className="hero__logo-border">
-            <img className="hero__logo" src={logo} alt="Amro Gharz" ref={heroLogoRef} />
-          </div>
+          <img className="hero__logo" src={logo} alt="Amro Gharz" ref={heroLogoRef} />
         </div>
 
       </div>

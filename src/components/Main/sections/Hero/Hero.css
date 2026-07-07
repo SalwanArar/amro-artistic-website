@@ -22,10 +22,15 @@
   aspect-ratio: 1 / 1;
 }
 
-/* Plain grouping layer for the chrome entrance tween — deliberately has no
-   transform/animation of its own so GSAP can own opacity/scale on it
-   without clobbering any child's static or keyframe-driven transform. */
-.hero__chrome {
+/* Plain, non-positioned spring-entrance layers — one per chrome piece so
+   each can scale/fade in at its own speed and size. Deliberately have no
+   transform/animation of their own so GSAP can own opacity/scale on them
+   without clobbering a child's static or keyframe-driven transform (e.g.
+   .hero__geo's spin, .hero__nav-svg's centering translate). */
+.hero__spring-geo,
+.hero__spring-nav,
+.hero__spring-ring,
+.hero__spring-text {
   position: absolute;
   inset: 0;
 }
@@ -66,7 +71,11 @@
   stroke-width: 2.5;
 }
 
-/* Logo circle — centered inside the ring */
+/* Decorative ring around the logo. A sibling of .hero__logo, NOT a parent
+   — Intro measures the logo's rect via heroLogoRef to fly the shared-
+   element logo onto it, and any transform on an ANCESTOR of that logo
+   would throw the measurement off (see Hero.jsx). Keeping them siblings
+   means this ring can spring/scale freely with zero effect on the logo. */
 .hero__logo-border {
   position: absolute;
   top: 50%;
@@ -79,12 +88,14 @@
   pointer-events: none;
 }
 
+/* Sized directly against .hero__center-box: 0.95 * 40% (the old ring-
+   relative sizing) so it renders identically to before. */
 .hero__logo {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 95%;
+  width: 38%;
   border-radius: 50%;
   background:
     radial-gradient(circle at 82% 12%, #d9a36e 0%, rgba(217, 163, 110, .55) 1%, rgba(217, 163, 110, 0) 40%),
