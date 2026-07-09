@@ -7,7 +7,7 @@ const BACKGROUND_MUSIC_SRC = bgMusicUrl
 const BACKGROUND_MUSIC_VOLUME = 0.35
 
 export function useAudio() {
-  const { isEntered, audioEnabled, onAudioReady } = useApp()
+  const { isEntered, audioEnabled, introModeChosen, onAudioReady } = useApp()
   const soundRef = useRef(null)
 
   useEffect(() => {
@@ -39,7 +39,10 @@ export function useAudio() {
     const sound = soundRef.current
     if (!sound) return
 
-    if (!isEntered || !audioEnabled) {
+    // Gated on introModeChosen (not just isEntered) so playback starts
+    // alongside the intro sequence actually playing, rather than the
+    // instant the user clicks Enter and lands on the idle mode-select screen.
+    if (!isEntered || !audioEnabled || !introModeChosen) {
       sound.pause()
       return
     }
@@ -47,5 +50,5 @@ export function useAudio() {
     if (!sound.playing()) {
       sound.play()
     }
-  }, [isEntered, audioEnabled])
+  }, [isEntered, audioEnabled, introModeChosen])
 }

@@ -29,12 +29,17 @@ export function AppProvider({ children }) {
   const [isEntered, setIsEntered] = useState(false)
 
   // ── AUDIO STATE ───────────────────────────────────────────────
-  // audioEnabled: whether background music should currently play.
-  //               It starts enabled and begins after the first
-  //               user interaction (the Enter button).
-  // audioReady  : Howler has loaded and decoded the track.
-  const [audioEnabled, setAudioEnabled] = useState(true)
-  const [audioReady,   setAudioReady]   = useState(false)
+  // audioEnabled:     whether background music should currently play.
+  //                   Starts enabled; toggled by the UI button.
+  // audioReady:       Howler has loaded and decoded the track.
+  // introModeChosen:  true once the user picks Scroll or Auto-play in
+  //                   the Intro. Music playback is gated on this (in
+  //                   addition to audioEnabled) so it starts alongside
+  //                   the sequence actually playing, not at the Enter
+  //                   click while the mode-select screen just sits idle.
+  const [audioEnabled,    setAudioEnabled]    = useState(true)
+  const [audioReady,      setAudioReady]      = useState(false)
+  const [introModeChosen, setIntroModeChosen] = useState(false)
 
   // ── INTRO STATE ───────────────────────────────────────────────
   // introComplete: true after the scroll-driven image sequence has
@@ -81,6 +86,12 @@ export function AppProvider({ children }) {
     setAudioEnabled(prev => !prev)
   }, [])
 
+  // Called by the Intro component the moment the user picks a mode
+  // (Scroll or Auto-play). One-way flip — once chosen it stays chosen.
+  const chooseIntroMode = useCallback(() => {
+    setIntroModeChosen(true)
+  }, [])
+
   // Called by the Intro component when the exit hand-off begins.
   // Causes Main to mount (Hero's real logo starts hidden — see
   // heroLogoRef — until Intro's shared-element flight lands on it).
@@ -104,6 +115,7 @@ export function AppProvider({ children }) {
     isEntered,
     audioEnabled,
     audioReady,
+    introModeChosen,
     introComplete,
     introExiting,
     heroLogoRef,
@@ -112,6 +124,7 @@ export function AppProvider({ children }) {
     enter,
     onAudioReady,
     toggleAudio,
+    chooseIntroMode,
     exitIntro,
     completeIntro,
   }

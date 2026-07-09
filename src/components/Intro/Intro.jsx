@@ -34,7 +34,7 @@ const PX_PER_FRAME  = 24      // scroll distance per frame (scroll mode)
 const AUTO_DURATION = 11      // seconds to play all frames (auto mode)
 
 export default function Intro() {
-  const { introComplete, exitIntro, completeIntro, heroLogoRef } = useApp()
+  const { introComplete, exitIntro, completeIntro, heroLogoRef, chooseIntroMode } = useApp()
 
   const containerRef  = useRef(null)
   const canvasRef     = useRef(null)
@@ -292,6 +292,7 @@ export default function Intro() {
     finishedRef.current = false
     setMode('scroll')
     setHintHidden(true)
+    chooseIntroMode()
 
     const proxy = { frame: frameIdxRef.current }
     const lastFrame = frameCount - 1
@@ -322,7 +323,7 @@ export default function Intro() {
     window.scrollTo({ top: totalPx * progress, behavior: 'instant' })
 
     ScrollTrigger.refresh()
-  }, [frameCount, drawFrame, finishIntro, tearDown])
+  }, [frameCount, drawFrame, finishIntro, tearDown, chooseIntroMode])
 
   // ── Activate AUTO-PLAY mode ───────────────────────────────────
   const activateAuto = useCallback(() => {
@@ -330,6 +331,7 @@ export default function Intro() {
     tearDown()
     setMode('auto')
     setHintHidden(true)
+    chooseIntroMode()
 
     const remaining = 1 - frameIdxRef.current / (frameCount - 1)
     const duration  = AUTO_DURATION * remaining
@@ -349,7 +351,7 @@ export default function Intro() {
         finishIntro()
       },
     })
-  }, [frameCount, drawFrame, finishIntro, tearDown])
+  }, [frameCount, drawFrame, finishIntro, tearDown, chooseIntroMode])
 
   if (introComplete) return null
 
