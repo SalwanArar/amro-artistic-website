@@ -45,6 +45,7 @@ html.intro-active::-webkit-scrollbar {
   position: fixed;
   bottom: 2.8rem;
   left: 50%;
+  top: 70%;
   transform: translateX(-50%);
   z-index: 100;
   display: flex;
