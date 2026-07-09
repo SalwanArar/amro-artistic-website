@@ -33,6 +33,11 @@ gsap.registerPlugin(ScrollTrigger)
 const PX_PER_FRAME  = 24      // scroll distance per frame (scroll mode)
 const AUTO_DURATION = 11      // seconds to play all frames (auto mode)
 
+// 'svh' stays pinned to the max-chrome-shown viewport height instead of
+// live-tracking the mobile address bar like plain 'vh' does — avoids the
+// canvas overlay resizing out from under the Intro->Hero measurement/flight.
+const STABLE_VH_UNIT = typeof CSS !== 'undefined' && CSS.supports?.('height', '100svh') ? 'svh' : 'vh'
+
 export default function Intro() {
   const { introComplete, exitIntro, completeIntro, heroLogoRef, chooseIntroMode } = useApp()
 
@@ -204,7 +209,7 @@ export default function Intro() {
         top: 0,
         left: 0,
         width: '100%',
-        height: '100vh',
+        height: `100${STABLE_VH_UNIT}`,
         zIndex: 50,
       })
     }

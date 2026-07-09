@@ -1,5 +1,6 @@
 .hero {
   height: 100vh;
+  height: 100svh;
   overflow: hidden;
   position: relative;
 }
@@ -19,6 +20,7 @@
   position: relative;
   flex-shrink: 0;
   width: min(90vw, 75vh);
+  width: min(90vw, 75svh);
   aspect-ratio: 1 / 1;
 }
 
