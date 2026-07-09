@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap/gsap-core'
 import { useApp } from '../../../../hooks/useApp'
 import { FLIGHT_DURATION } from '../../../../constants/heroTransition'
@@ -115,6 +115,30 @@ export default function Hero() {
         delay: Math.max(FLIGHT_DURATION - 0.55, 0),
       }
     )
+  }, [introExiting])
+
+  // Mobile browsers occasionally leave these shapes mis-rendered (collapsed/
+  // mis-sized) if the address bar is still animating while the springs above
+  // run — the known workaround is backgrounding the browser and returning,
+  // which forces a full relayout+repaint. Reproduce that same forced
+  // reflow automatically, once, shortly after the springs have settled
+  // (longest spring finishes ~2.15s in), instead of waiting on the user to
+  // switch apps.
+  useEffect(() => {
+    if (!introExiting || !heroRef.current) return
+    if (!window.matchMedia?.('(pointer: coarse)').matches) return
+
+    const box = heroRef.current.querySelector('.hero__center-box')
+    if (!box) return
+
+    const timer = setTimeout(() => {
+      const prevDisplay = box.style.display
+      box.style.display = 'none'
+      void box.offsetHeight
+      box.style.display = prevDisplay
+    }, 2400)
+
+    return () => clearTimeout(timer)
   }, [introExiting])
 
   function toggle(id) {

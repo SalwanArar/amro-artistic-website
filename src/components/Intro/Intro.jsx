@@ -272,7 +272,21 @@ export default function Intro() {
         // The swap: canvas out, ghost in, same instant, same pixels.
         if (canvasWrap) gsap.set(canvasWrap, { autoAlpha: 0 })
 
-        gsap.to(ghost, {
+        // destRect/sourceRect above are a one-shot snapshot. If the
+        // viewport genuinely changes mid-flight (e.g. a mobile address
+        // bar still finishing its show/hide animation right as this was
+        // measured), that snapshot is now stale for whatever's left of
+        // FLIGHT_DURATION — riding it out lands the ghost somewhere
+        // wrong. Rather than try to redirect a moving target, cut
+        // straight to the resting state: onComplete reveals the real,
+        // currently-laid-out logo (destEl) instead of trusting the
+        // ghost's baked math, so one hard cut beats visibly wrong numbers.
+        let flightTween
+        const settleEarly = () => flightTween?.progress(1)
+        window.visualViewport?.addEventListener('resize', settleEarly)
+        window.addEventListener('resize', settleEarly)
+
+        flightTween = gsap.to(ghost, {
           x: 0,
           y: 0,
           scaleX: 1,
@@ -280,6 +294,8 @@ export default function Intro() {
           duration: FLIGHT_DURATION,
           ease: FLIGHT_EASE,
           onComplete: () => {
+            window.visualViewport?.removeEventListener('resize', settleEarly)
+            window.removeEventListener('resize', settleEarly)
             // The swap back: real logo in, ghost out, same instant, same pixels.
             if (destEl) gsap.set(destEl, { autoAlpha: 1 })
             gsap.set(ghost, { autoAlpha: 0 })

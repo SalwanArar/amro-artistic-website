@@ -21,6 +21,11 @@
   flex-shrink: 0;
   width: min(90vw, 75vh);
   width: min(90vw, 75svh);
+  /* Explicit height (not just aspect-ratio) — every child here is
+     position:absolute, so there's no in-flow content to fall back on if
+     aspect-ratio ever fails to resolve during a viewport hand-off. */
+  height: min(90vw, 75vh);
+  height: min(90vw, 75svh);
   aspect-ratio: 1 / 1;
 }
 
