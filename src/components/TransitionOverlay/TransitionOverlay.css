@@ -1,0 +1,26 @@
+/* Single global transition overlay.
+   z-index 3000: above the app + AudioToggle (2000), below the
+   Preloader (9999), which is already gone by the time any section
+   transition can run. pointer-events: none so it never eats clicks. */
+.transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: opacity;
+}
+
+/* Transparent WebM (VP9 + alpha) filling the whole viewport. object-fit:
+   cover scales it to cover the screen (cropping edges as needed) so the
+   effect is truly fullscreen; transparency is preserved (nothing paints
+   behind it). */
+.transition-overlay__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+  pointer-events: none;
+}

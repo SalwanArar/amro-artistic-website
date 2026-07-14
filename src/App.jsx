@@ -14,6 +14,7 @@
 import { useEffect }            from 'react'
 import { ScrollTrigger }        from 'gsap/ScrollTrigger'
 import { AppProvider }          from './context/AppContext'
+import { TransitionProvider }   from './transitions/TransitionProvider'
 import { useApp }               from './hooks/useApp'
 import AudioToggle              from './components/AudioToggle/AudioToggle'
 import { useAudio }             from './hooks/useAudio'
@@ -22,6 +23,7 @@ import { useScroll }            from './hooks/useScroll'
 import Preloader                from './components/Preloader/Preloader'
 import Intro                    from './components/Intro/Intro'
 import Main                     from './components/Main/Main'
+import TransitionOverlay        from './components/TransitionOverlay/TransitionOverlay'
 
 function AppInner() {
   usePreloader()
@@ -48,6 +50,10 @@ function AppInner() {
 
       {/* Main mounts during introExiting so hero can crossfade with the canvas */}
       {isEntered && (introComplete || introExiting) && <Main />}
+
+      {/* Single global overlay for all section transitions. Mounted once,
+          hidden at rest; the transition manager drives it. */}
+      <TransitionOverlay />
     </>
   )
 }
@@ -55,7 +61,9 @@ function AppInner() {
 export default function App() {
   return (
     <AppProvider>
-      <AppInner />
+      <TransitionProvider>
+        <AppInner />
+      </TransitionProvider>
     </AppProvider>
   )
 }

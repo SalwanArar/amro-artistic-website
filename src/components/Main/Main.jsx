@@ -1,10 +1,10 @@
 import './Main.css'
-import Hero from './sections/Hero/Hero'
+import SectionHost from './SectionHost'
 
 export default function Main() {
   return (
     <main id="main" className="main" aria-label="Site content">
-      <Hero />
+      <SectionHost />
     </main>
   )
 }

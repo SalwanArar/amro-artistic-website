@@ -40,6 +40,17 @@
 .hero__spring-text {
   position: absolute;
   inset: 0;
+  /* Presentational entrance wrappers only. They're full-size (inset:0)
+     and stack on top of one another, so left interactive the upper ones
+     (text, ring) would swallow every click meant for the nav wheel
+     beneath them. Interaction is re-enabled on the nav itself below. */
+  pointer-events: none;
+}
+
+/* The nav wheel is the one interactive layer — re-enable pointer events
+   on the SVG (and thus its tab segments) despite its click-through wrapper. */
+.hero__nav-svg {
+  pointer-events: auto;
 }
 
 /* Spinning outer decoration */

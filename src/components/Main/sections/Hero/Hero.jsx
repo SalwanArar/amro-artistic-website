@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap/gsap-core'
 import { useApp } from '../../../../hooks/useApp'
+import { useTransition } from '../../../../hooks/useTransition'
 import { FLIGHT_DURATION } from '../../../../constants/heroTransition'
 import './Hero.css'
 
@@ -55,8 +56,8 @@ function arcPath(r, start, end, flip) {
 
 export default function Hero() {
   const { introExiting, heroLogoRef } = useApp()
+  const { transitionTo, activeSection } = useTransition()
   const heroRef = useRef(null)
-  const [activeTab, setActiveTab] = useState(null)
   const [hoverTab, setHoverTab] = useState(null)
 
   // Reveal the surrounding chrome independently of the logo — the logo's
@@ -141,10 +142,6 @@ export default function Hero() {
     return () => clearTimeout(timer)
   }, [introExiting])
 
-  function toggle(id) {
-    setActiveTab(prev => prev === id ? null : id)
-  }
-
   return (
     <section
       ref={heroRef}
@@ -187,13 +184,14 @@ export default function Hero() {
             {TABS.map(tab => {
               const s = tab.angle - STEP / 2 + GAP_DEG / 2
               const e = tab.angle + STEP / 2 - GAP_DEG / 2
-              const isActive = activeTab === tab.id
+              // isActive drives only the a11y state (which section you're on),
+              // not the visual — the hub never paints itself as "selected".
+              // Visual feedback is hover-only, so no tab looks stuck-on.
+              const isActive = activeSection === tab.id
               const isHover  = hoverTab  === tab.id
 
-              const segFill  = isActive ? tab.color
-                             : isHover  ? tab.color + '44'
-                             : '#00000000'
-              const textFill = (isActive || isHover) ? '#ffffff' : tab.color
+              const segFill  = isHover ? tab.color + '44' : '#00000000'
+              const textFill = isHover ? '#ffffff' : tab.color
 
               return (
                 <g
@@ -203,13 +201,13 @@ export default function Hero() {
                   aria-selected={isActive}
                   aria-label={tab.label}
                   className="hero__nav-tab"
-                  onClick={() => toggle(tab.id)}
+                  onClick={() => transitionTo(tab.id)}
                   onMouseEnter={() => setHoverTab(tab.id)}
                   onMouseLeave={() => setHoverTab(null)}
                   onKeyDown={ev => {
                     if (ev.key === 'Enter' || ev.key === ' ') {
                       ev.preventDefault()
-                      toggle(tab.id)
+                      transitionTo(tab.id)
                     }
                   }}
                 >

@@ -1,0 +1,12 @@
+/* Section layers stack in the same box so a crossfade never shifts
+   layout. A single active layer fills the viewport; during a
+   transition the incoming layer sits exactly on top of the outgoing
+   one and they crossfade via GSAP autoAlpha. */
+.section-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  will-change: opacity;
+}

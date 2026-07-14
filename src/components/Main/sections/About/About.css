@@ -1,0 +1,70 @@
+.about {
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about__inner {
+  max-width: min(680px, 86vw);
+  padding: clamp(24px, 5vw, 56px);
+  text-align: center;
+  border-radius: 20px;
+  background: rgba(10, 13, 34, 0.55);
+  border: 1px solid rgba(78, 182, 248, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.about__eyebrow {
+  color: var(--azure);
+  font-size: clamp(0.7rem, 1.4vw, 0.9rem);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.about__title {
+  color: #ffffff;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: 2px;
+  line-height: 1;
+  margin-bottom: 1.25rem;
+}
+
+.about__body {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.about__back {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: clamp(0.85rem, 1.6vw, 1rem);
+  font-weight: 600;
+  color: #ffffff;
+  padding: 0.7em 1.6em;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: linear-gradient(90deg, var(--violet), var(--azure));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.about__back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(78, 182, 248, 0.3);
+}
+
+.about__back:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
