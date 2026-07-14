@@ -8,6 +8,8 @@
 // at build time — no manual base-URL prefixing required.
 // ─────────────────────────────────────────────────────────────────
 
+import bgMusicUrl from '../assets/audio/background-music.mp3?url'
+
 // ── FRAME URLS ───────────────────────────────────────────────────
 // Vite resolves each PNG at build time and returns its final URL
 // (hashed, base-prefixed). Sorted by filename → correct frame order.
@@ -26,7 +28,7 @@ export const buildFrameUrls = () => _frameUrls
 
 // ── AUDIO ASSETS ─────────────────────────────────────────────────
 const AUDIO_ASSETS = [
-  // { url: bgMusicUrl, label: 'Background music' },
+  { url: bgMusicUrl, label: 'Background music' },
 ]
 
 // ── CORE LOADER ──────────────────────────────────────────────────
