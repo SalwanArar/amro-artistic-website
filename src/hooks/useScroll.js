@@ -18,6 +18,15 @@ import { ScrollTrigger }     from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
+// By default GSAP ignores small viewport-height changes on touch-only
+// devices (e.g. the address bar hiding while scrolling) to avoid jank.
+// Our intro's scroll-driven ScrollTrigger uses `end: 'bottom bottom'`,
+// which is computed FROM the viewport height — so an ignored resize
+// leaves that end position stale, capping scroll progress just short
+// of 1 once the address bar collapses mid-scroll on touch. Disabling
+// this keeps `end` in sync with the real scrollable range on touch.
+ScrollTrigger.config({ ignoreMobileResize: false })
+
 export function useScroll() {
   const lenisRef = useRef(null)
 
