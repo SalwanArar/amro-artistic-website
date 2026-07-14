@@ -8,7 +8,20 @@
   --azure: #4EB6F8;
   --violet: #804DDB;
   --flame: #FA8200;
-  --site-background-image: url('/images/background.png');
+  /* --site-background-image: url('/images/background.png'); */
+  --site-background-image: radial-gradient(
+                circle at center 85%,
+                #306696 0%,
+                #2D5C8A 5%,
+                #29527E 10%,
+                #254872 15%,
+                #213E65 20%,
+                #192A4D 30%,
+                #152041 40%,
+                #131B3B 55%,
+                #121838 75%,
+                #111534 100%
+            );
 }
 
 *, *::before, *::after {
